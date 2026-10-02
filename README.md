@@ -4,9 +4,18 @@ Evaluate the internal Param17B `step_20000` SFT checkpoint, inspect its failures
 
 ## Current state
 
-Infrastructure preparation is complete enough to begin runtime validation. An AWS BharatGen HyperPod worker with H100 GPUs has been inspected, and a cached Docker container starts successfully. The checkpoint architecture is `Param2MoEForCausalLM`; its config records Transformers 5.3.0 and a 32,768 token position range. Model loading, native tool calling, and the full evaluation have not yet been validated on this worker.
+The internal SFT checkpoint has completed all 35 pinned ITBench-Lite SRE cases, using eight independent model processes. Every container exited successfully and none reported GPU OOM. The current agent configuration produced zero valid final diagnoses and zero root-cause entity proxy hits.
 
-No new benchmark score is available. The earlier public Param2 Thinking checkpoint experiments belong to the separate [smoke evaluation repository](https://github.com/harshit-ml-research/agent-eval-smoke-test).
+| Failure category | Cases |
+| --- | ---: |
+| Tool call after the final-turn budget | 17 |
+| Malformed output | 7 |
+| Invalid diagnosis structure | 6 |
+| Output token limit | 5 |
+
+This is an end-to-end failure under the current protocol, not an official ITBench judge score or a conclusion about every intermediate hypothesis. The 35-case dataset revision is `d0916b08ba421ce5e672e9ad68aa947d938dfef0`. There was one attempt per incident, temperature 0, 2,048 output tokens per generation, and eight investigation turns followed by a diagnosis turn.
+
+The earlier public Param2 Thinking checkpoint experiments belong to the separate [smoke evaluation repository](https://github.com/harshit-ml-research/agent-eval-smoke-test).
 
 ## Evaluation scope
 
@@ -27,4 +36,8 @@ The reference repositories are Git submodules:
 git clone --recurse-submodules https://github.com/harshit-ml-research/param-sft-eval.git
 ```
 
-Operational access instructions, private checkpoint locations, and worker inventories live in the separate private internal repository. This repository currently documents preparation; it does not yet provide a validated model-serving or benchmark runner.
+Operational access instructions, private checkpoint locations, and worker inventories live in the separate private internal repository. The validated Docker entry point is [`runtime_validate.py`](runtime_validate.py). It uses the mounted checkpoint at `/model`, project workspace at `/workspace`, and the checkpoint's native chat template. It preserves generation checks and can run selected SRE incidents through the separate smoke harness.
+
+`RUN_ITBENCH=1` enables incident evaluation; `ITBENCH_SCENARIOS` is a comma-separated list of exact scenario IDs. `RUN_ID`, `CHECKPOINT_SOURCE` and `IMAGE_ID` identify the run. Worker and physical GPU identities are supplied through environment variables and recorded in manifests. Dependencies, snapshots and the smoke harness must be mounted or staged before launch.
+
+The private internal repository retains the launch scripts, detailed `current_status.md`, compact completion records and operational recovery notes. Raw traces stay in experiment storage. The first automatic coordinator stalled after preparation; the full run was recovered by direct launch.
