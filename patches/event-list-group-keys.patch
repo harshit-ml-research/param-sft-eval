@@ -1,0 +1,35 @@
+From f3180dd6efe1a18851513fc3054fd87aa711de20 Mon Sep 17 00:00:00 2001
+From: Harshit Singh Bhandari <dev@theharshitsingh.com>
+Date: Sun, 4 Oct 2026 14:24:29 +0530
+Subject: [PATCH] Avoid duplicate group keys in event list aggregation
+
+Exclude grouping columns from list aggregation and use row_count when count is already a grouping key. Verify empty and nonempty queries through the evaluation adapter; all 41 harness tests pass.
+---
+ sre_tools/offline_incident_analysis/events/analyzer.py | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/sre_tools/offline_incident_analysis/events/analyzer.py b/sre_tools/offline_incident_analysis/events/analyzer.py
+index 4d21183..3adda7a 100644
+--- a/sre_tools/offline_incident_analysis/events/analyzer.py
++++ b/sre_tools/offline_incident_analysis/events/analyzer.py
+@@ -207,12 +207,15 @@ async def _event_analysis(args: dict[str, Any]) -> list[TextContent]:
+         elif agg_type == "list":
+             # List unique values (useful for seeing all reasons for a pod)
+             agg_dict = {
+-                col: lambda x: list(x.unique())[:10] for col in ["reason", "message", "event_kind"] if col in df.columns
++                col: lambda x: list(x.unique())[:10]
++                for col in ["reason", "message", "event_kind"]
++                if col in df.columns and col not in group_cols
+             }
+             if agg_dict:
+                 grouped = df.groupby(group_cols).agg(agg_dict).reset_index()
+             else:
+-                grouped = df.groupby(group_cols).size().reset_index(name="count")
++                count_column = "row_count" if "count" in group_cols else "count"
++                grouped = df.groupby(group_cols).size().reset_index(name=count_column)
+         else:
+             return [
+                 TextContent(
+-- 
+2.54.0 (Apple Git-157)
+

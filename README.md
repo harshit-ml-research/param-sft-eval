@@ -41,3 +41,9 @@ Operational access instructions, private checkpoint locations, and worker invent
 `RUN_ITBENCH=1` enables incident evaluation; `ITBENCH_SCENARIOS` is a comma-separated list of exact scenario IDs. `RUN_ID`, `CHECKPOINT_SOURCE` and `IMAGE_ID` identify the run. Worker and physical GPU identities are supplied through environment variables and recorded in manifests. Dependencies, snapshots and the smoke harness must be mounted or staged before launch.
 
 The private internal repository retains the launch scripts, detailed `current_status.md`, compact completion records and operational recovery notes. Raw traces stay in experiment storage. The first automatic coordinator stalled after preparation; the full run was recovered by direct launch.
+
+## Corrected tool integration
+
+The reference agent submodule now includes the local `research/event-list-group-keys` correction: list aggregation excludes grouping keys, and its count fallback avoids a duplicate `count` column. The exported [patch](patches/event-list-group-keys.patch) preserves the change for review and reproduction. This local reference commit has not been published to the upstream repository. Before publishing this parent revision, make the reference commit available from a controlled fork and update the submodule remote as needed.
+
+The separate smoke harness honors validated output controls and retains full clipped tool responses in `raw_result` outside the model-visible conversation. All 41 harness tests passed with actual reference dependencies. The historical 35-case run and its classifications remain unchanged. These corrections have not yet been evaluated with new inference.
