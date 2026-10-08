@@ -1,8 +1,8 @@
 # Param SFT evaluation
 
-Evaluate the internal Param17B `step_20000` SFT checkpoint, inspect its failures, and identify why it goes wrong. Benchmark scores, complete trajectories, and manual review provide evidence for the diagnosis.
+The active research goal is tool calling: about 100 evaluation scenarios on Param2 and a couple of other models in that size range, followed by SFT data from four or five teachers at about 2,000 traces each. Those choices are not locked. The sections below are the completed SRE evaluation of the internal Param17B `step_20000` checkpoint.
 
-## Current state
+## Completed SRE evaluation
 
 The internal SFT checkpoint has completed all 35 pinned ITBench-Lite SRE cases, using eight independent model processes. Every container exited successfully and none reported GPU OOM. The current agent configuration produced zero valid final diagnoses and zero root-cause entity proxy hits.
 
